@@ -14,17 +14,17 @@ def getProbabilities(corpusTokens,windowSize):
         for w in window:
             singleCounts[w] += 1
 
-        window_list = list(window)
-        for j in range(len(window_list)):
-            for k in range(j + 1,len(window_list)):
-                w1,w2 = sorted((window_list[j],window_list[k]))
+        windowList = list(window)
+        for j in range(len(windowList)):
+            for k in range(j + 1,len(windowList)):
+                w1,w2 = sorted((windowList[j],windowList[k]))
                 pairCounts[(w1,w2)] += 1
 
     singleProbs = {w: c / numWindows for w,c in singleCounts.items()}
     pairProbs = {p: c / numWindows for p,c in pairCounts.items()}
     return singleProbs,pairProbs
 
-def compute_cp(topic,corpusTokens,windowSize=5):
+def computeCp(topic,corpusTokens,windowSize=5):
     singleProbs,pairProbs = getProbabilities(corpusTokens,windowSize)
     scores = []
 
@@ -80,9 +80,7 @@ corpus = "The quick brown fox jumps over the lazy dog. A dog is a man's best fri
 corpusTokens = corpus.lower().replace('.','').split()
 topicWords = ["dog","fox","quick","brown"]
 
-cp_score = compute_cp(topicWords,corpusTokens)
-cv_score = computeCv(topicWords,corpusTokens)
+cpscore = computeCp(topicWords,corpusTokens)
+cvscore = computeCv(topicWords,corpusTokens)
 
-print(cp_score,cv_score)
-
-
+print(cpscore,cvscore)
