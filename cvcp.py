@@ -1,39 +1,39 @@
 import math
 from collections import defaultdict
 
-def get_probabilities(corpus_tokens, window_size):
-    single_counts = defaultdict(int)
-    pair_counts = defaultdict(int)
+def getProbabilities(corpusTokens,windowSize):
+    singleCounts = defaultdict(int)
+    pairCounts = defaultdict(int)
 
-    num_windows = max(0, len(corpus_tokens) - window_size + 1)
-    if num_windows == 0:
-        return {}, {}
+    numWindows = max(0,len(corpusTokens) - windowSize + 1)
+    if numWindows == 0:
+        return {},{}
 
-    for i in range(num_windows):
-        window = set(corpus_tokens[i : i + window_size])
+    for i in range(numWindows):
+        window = set(corpusTokens[i : i + windowSize])
         for w in window:
-            single_counts[w] += 1
+            singleCounts[w] += 1
 
         window_list = list(window)
         for j in range(len(window_list)):
-            for k in range(j + 1, len(window_list)):
-                w1, w2 = sorted((window_list[j], window_list[k]))
-                pair_counts[(w1, w2)] += 1
+            for k in range(j + 1,len(window_list)):
+                w1,w2 = sorted((window_list[j],window_list[k]))
+                pairCounts[(w1,w2)] += 1
 
-    single_probs = {w: c / num_windows for w, c in single_counts.items()}
-    pair_probs = {p: c / num_windows for p, c in pair_counts.items()}
-    return single_probs, pair_probs
+    singleProbs = {w: c / numWindows for w,c in singleCounts.items()}
+    pairProbs = {p: c / numWindows for p,c in pairCounts.items()}
+    return singleProbs,pairProbs
 
-def compute_cp(topic, corpus_tokens, window_size=5):
-    single_probs, pair_probs = get_probabilities(corpus_tokens, window_size)
+def compute_cp(topic,corpusTokens,windowSize=5):
+    singleProbs,pairProbs = getProbabilities(corpusTokens,windowSize)
     scores = []
 
-    for i in range(1, len(topic)):
+    for i in range(1,len(topic)):
         for j in range(i):
-            wi, wj = topic[i], topic[j]
-            p_i = single_probs.get(wi, 0.0)
-            p_j = single_probs.get(wj, 0.0)
-            p_ij = pair_probs.get(tuple(sorted((wi, wj))), 0.0)
+            wi,wj = topic[i],topic[j]
+            p_i = singleProbs.get(wi,0.0)
+            p_j = singleProbs.get(wj,0.0)
+            p_ij = pairProbs.get(tuple(sorted((wi,wj))),0.0)
 
             p_i_given_j = p_ij / p_j if p_j > 0 else 0.0
             p_i_given_not_j = (p_i - p_ij) / (1.0 - p_j) if p_j < 1.0 else 0.0
@@ -45,22 +45,22 @@ def compute_cp(topic, corpus_tokens, window_size=5):
 
     return sum(scores) / len(scores) if scores else 0.0
 
-def cosine_sim(v1, v2):
-    dot = sum(x * y for x, y in zip(v1, v2))
+def cosineSim(v1,v2):
+    dot = sum(x * y for x,y in zip(v1,v2))
     mag1 = math.sqrt(sum(x * x for x in v1))
     mag2 = math.sqrt(sum(x * x for x in v2))
     return dot / (mag1 * mag2) if mag1 * mag2 > 0 else 0.0
 
-def compute_cv(topic, corpus_tokens, window_size=10):
-    single_probs, pair_probs = get_probabilities(corpus_tokens, window_size)
+def computeCv(topic,corpusTokens,windowSize=10):
+    singleProbs,pairProbs = getProbabilities(corpusTokens,windowSize)
     vectors = []
 
     for wi in topic:
         vec = []
         for wk in topic:
-            p_i = single_probs.get(wi, 0.0)
-            p_k = single_probs.get(wk, 0.0)
-            p_ik = pair_probs.get(tuple(sorted((wi, wk))), 0.0)
+            p_i = singleProbs.get(wi,0.0)
+            p_k = singleProbs.get(wk,0.0)
+            p_ik = pairProbs.get(tuple(sorted((wi,wk))),0.0)
 
             if p_ik == 0.0 or p_i == 0.0 or p_k == 0.0:
                 npmi = 0.0
@@ -73,14 +73,16 @@ def compute_cv(topic, corpus_tokens, window_size=10):
     N = len(topic)
     centroid = [sum(vectors[j][k] for j in range(N)) for k in range(N)]
 
-    scores = [cosine_sim(vectors[i], centroid) for i in range(N)]
+    scores = [cosineSim(vectors[i],centroid) for i in range(N)]
     return sum(scores) / len(scores) if scores else 0.0
 
 corpus = "The quick brown fox jumps over the lazy dog. A dog is a man's best friend."
-corpus_tokens = corpus.lower().replace('.', '').split()
-topic_words = ["dog", "fox", "quick", "brown"]
+corpusTokens = corpus.lower().replace('.','').split()
+topicWords = ["dog","fox","quick","brown"]
 
-cp_score = compute_cp(topic_words, corpus_tokens)
-cv_score = compute_cv(topic_words, corpus_tokens)
+cp_score = compute_cp(topicWords,corpusTokens)
+cv_score = computeCv(topicWords,corpusTokens)
 
 print(cp_score,cv_score)
+
+
