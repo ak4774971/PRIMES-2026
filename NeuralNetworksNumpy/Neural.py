@@ -42,25 +42,6 @@ class Arctan(Generic):
             return grad_local, None
         grad_entree=grad_sortie/(1+self.save_X**2)
         return grad_local,grad_entree
-
-class Sigmoid(Generic):
-    def __init__(self):
-        self.nb_params=0
-        self.save_X=None
-    def set_params(self, params):
-        pass
-    def get_params(self):
-        return None
-    def forward(self, X):
-        self.save_X=np.copy(X)
-        return 1.0/(1.0+np.exp(-self.save_X))
-    def backward(self, grad_sortie):
-        grad_local=None
-        if self.save_X is None:
-            return grad_local, None
-        s = 1.0/(1.0+np.exp(-self.save_X))
-        grad_entree = grad_sortie * s * (1.0 - s)
-        return grad_local, grad_entree
     
 class Dense(Generic): 
     def __init__(self, nb_entree, nb_output): 
@@ -136,7 +117,7 @@ class Network(Generic):
             gl, g = layer.backward(g)
             if gl is not None:
                 grad_locals.append(gl)
-        return np.concatenate(grad_locals), g
+        return np.concatenate(grad_locals[::-1]), g
 
 class Sigmoid(Generic): 
     def __init__(self):
